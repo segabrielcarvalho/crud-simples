@@ -1,6 +1,3 @@
-# Criando um arquivo README.md mais simples e direto para a tarefa mencionada
-
-simple_readme_content = """
 # Função de Editar/Atualizar - Sistema Pizzaria
 
 Este repositório contém a implementação da funcionalidade de editar/atualizar para o sistema de pizzaria, conforme solicitado na tarefa prática.
