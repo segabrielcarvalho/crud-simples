@@ -11,7 +11,7 @@ Adicionar a funcionalidade de edição/atualização de dados de usuários no ba
 ## Instruções de Uso
 
 ### 1. Backend
-- Implementei os métodos `edit` e `update` no `UserController.php` para permitir a edição e atualização de usuários.
+- Implementei os métodos `edit` e `update` no `UserController.php` da `API-PROFESSOR` para permitir a edição e atualização de usuários.
 
 ### 2. Frontend
 - Criei um formulário simples para editar os dados do usuário, que envia uma requisição de atualização ao backend.
