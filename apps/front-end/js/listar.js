@@ -24,7 +24,6 @@ async function listarUsuarios() {
     
                 // Itera sobre os usuários e adiciona cada um à tabela
                 usuarios.user.data.forEach((usuario, index) => {
-                    
                     const dataCriacao = new Date(usuario.created_at);
                     const dataFormatada = dataCriacao.toLocaleString('pt-BR', {
                         day: '2-digit',
@@ -35,6 +34,7 @@ async function listarUsuarios() {
                         second: '2-digit',
                         hour12: false // Formato 24 horas
                     });
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${index + 1}</td>
@@ -45,17 +45,19 @@ async function listarUsuarios() {
                             <button class="btn btn-info btn-sm visualizar-usuario" data-id="${usuario.id}">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            <button class="btn btn-warning btn-sm editar-usuario" data-id="${usuario.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             ${
                                 usuario.id != userIdLogado
                                 ? `<button class="btn btn-danger btn-sm excluir-usuario" data-id="${usuario.id}">
                                     <i class="fas fa-trash-alt"></i>
-                                   </button>`
+                                </button>`
                                 : ''
-                            } <!-- Mostra o botão de excluir apenas se o id for diferente -->
+                            }
                         </td>
                     `;
                     tabelaUsuarios.appendChild(row);
-                    
                 });
 
                 // Adiciona o evento de clique para excluir o usuário
@@ -75,6 +77,14 @@ async function listarUsuarios() {
                         visualizarUsuario(userId);
                     });
                 });
+
+                document.querySelectorAll('.editar-usuario').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const userId = this.getAttribute('data-id');
+                        editarUsuario(userId);
+                    });
+                });
+                
             } else {
                 throw new Error('Erro ao buscar os usuários');
             }
@@ -147,6 +157,75 @@ function visualizarUsuario(userId) {
     })
     .catch(error => {
         console.error('Erro ao visualizar o usuário:', error);
+    });
+}
+
+function editarUsuario(userId) {
+    const token = localStorage.getItem('token');
+
+    fetch(`http://localhost:8000/api/user/visualizar/${userId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('editarNome').value = data.user.name;
+        document.getElementById('editarEmail').value = data.user.email;
+        document.getElementById('editarUserId').value = data.user.id;
+
+        const editarModal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
+        editarModal.show();
+    })
+    .catch(error => {
+        console.error('Erro ao editar o usuário:', error);
+    });
+}
+
+function salvarEdicao() {
+    const token = localStorage.getItem('token');
+    const userId = document.getElementById('editarUserId').value;
+    const nome = document.getElementById('editarNome').value;
+    const email = document.getElementById('editarEmail').value;
+    const salvarBtn = document.querySelector("#editarUsuarioModal .btn-primary");
+
+    nome.disabled = true;
+    email.disabled = true;
+    salvarBtn.disabled = true;
+
+    fetch(`http://localhost:8000/api/user/atualizar/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: nome,
+            email: email
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Usuário atualizado com sucesso!');
+            listarUsuarios(); 
+            const editarModal = bootstrap.Modal.getInstance(document.getElementById('editarUsuarioModal'));
+            editarModal.hide();
+        } else {
+            throw new Error('Erro ao atualizar o usuário');
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao salvar edição do usuário:', error);
+        const mensagemErro = document.getElementById('editarMensagemErro');
+        mensagemErro.textContent = 'Erro ao salvar edição. Tente novamente mais tarde.';
+        mensagemErro.classList.remove('d-none');
+    })
+    .finally(() => {
+        nome.disabled = false;
+        email.disabled = false;
+        salvarBtn.disabled = false;
     });
 }
 
